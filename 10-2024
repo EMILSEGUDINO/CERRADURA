@@ -1,0 +1,34 @@
+import pymysql import json import os
+
+# Parámetros de conexión a la base de datos rds_host = os.environ['RDS_HOST']
+name = os.environ['RDS_USERNAME'] password = os.environ['RDS_PASSWORD']
+ 
+database = os.environ['RDS_DB_NAME']
+
+
+def lambda_handler(event, context): # Conexión a MySQL
+connection	=	pymysql.connect(host=rds_host,	user=name, password=password, db=database)
+cursor = connection.cursor()
+
+
+# Procesar el evento recibido for record in event['Records']:
+payload = json.loads(record['Sns']['Message']) sensor_id = payload['sensorId']
+status = payload['status'] timestamp = payload['timestamp']
+
+# Insertar datos en la base de datos
+sql = "INSERT INTO SensorData (sensorId, status, timestamp) VALUES (%s, %s, %s)"
+cursor.execute(sql, (sensor_id, status, timestamp))
+
+
+connection.commit() cursor.close() connection.close()
+
+return {
+'statusCode': 200,
+'body': json.dumps('Datos insertados correctamente')
+}
+"Statement": [
+{
+"Effect": "Allow",
+ 
+"Action": [ "iot:Connect", "iot:Publish", "iot:Subscribe", "iot:Receive"
+],
